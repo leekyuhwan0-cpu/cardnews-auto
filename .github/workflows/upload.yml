@@ -1,0 +1,31 @@
+name: CardNews Auto Upload
+
+on:
+  schedule:
+    - cron: '0 8 * * *'    # 17:00 KST
+    - cron: '3 8 * * *'    # 17:03 KST
+    - cron: '6 8 * * *'    # 17:06 KST
+    - cron: '9 8 * * *'    # 17:09 KST
+    - cron: '12 8 * * *'   # 17:12 KST
+  workflow_dispatch:        # 수동 실행 버튼
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 패키지 설치
+        run: pip install -r requirements.txt
+
+      - name: 설정 파일 생성
+        run: echo "${{ secrets.CARDNEWS_CONFIG }}" > cardnews_config.py
+
+      - name: 업로드 실행
+        run: python cardnews_upload.py
