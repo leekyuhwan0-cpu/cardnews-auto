@@ -246,3 +246,4 @@ def post_one(lang):
 
 if __name__ == "__main__":
     post_one("tr")
+    post_one("ja")
