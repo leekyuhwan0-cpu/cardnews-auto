@@ -1,12 +1,12 @@
-name: CardNews Auto Upload
+name: CardNews Auto Upload - JA
 
 on:
   schedule:
-    - cron: '0 8 * * *'    # 17:00 KST
-    - cron: '3 8 * * *'    # 17:03 KST
-    - cron: '6 8 * * *'    # 17:06 KST
-    - cron: '9 8 * * *'    # 17:09 KST
-    - cron: '12 8 * * *'   # 17:12 KST
+    - cron: '0 7 * * *'    # 16:00 KST
+    - cron: '2 7 * * *'    # 16:02 KST
+    - cron: '4 7 * * *'    # 16:04 KST
+    - cron: '6 7 * * *'    # 16:06 KST
+    - cron: '8 7 * * *'    # 16:08 KST
   workflow_dispatch:        # 수동 실행 버튼
 
 jobs:
@@ -30,4 +30,4 @@ jobs:
         run: echo "$CONFIG_B64" | tr -d '[:space:]' | base64 -d > cardnews_config.py
 
       - name: 업로드 실행
-        run: python cardnews_upload.py tr
+        run: python cardnews_upload.py ja

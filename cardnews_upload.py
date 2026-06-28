@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import time
 import random
 import tempfile
@@ -245,5 +246,5 @@ def post_one(lang):
     post_group(lang, base, groups[base])
 
 if __name__ == "__main__":
-    post_one("tr")
-    post_one("ja")
+    lang = sys.argv[1] if len(sys.argv) > 1 else "tr"
+    post_one(lang)
