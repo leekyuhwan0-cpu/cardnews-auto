@@ -92,6 +92,22 @@ def scan_drive_folder(folder_id):
             groups[base].append({"id": file_id, "name": name, "type": "txt"})
             continue
 
+        # 1_운석.png
+        m = re.match(r'^(\d+)_[^.]+\.png$', name)
+        if m:
+            base = int(m.group(1))
+            groups.setdefault(base, [])
+            groups[base].append({"id": file_id, "name": name, "type": "img_0"})
+            continue
+
+        # 1_운석.txt
+        m = re.match(r'^(\d+)_[^.]+\.txt$', name)
+        if m:
+            base = int(m.group(1))
+            groups.setdefault(base, [])
+            groups[base].append({"id": file_id, "name": name, "type": "txt"})
+            continue
+
     # 정렬: img_0 → img_1 → img_2 → video (txt 제외)
     for base in groups:
         groups[base].sort(key=lambda x: (0 if x["type"].startswith("img") else (1 if x["type"] == "video" else 2), x["type"]))
