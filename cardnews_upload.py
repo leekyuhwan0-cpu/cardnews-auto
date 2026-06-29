@@ -47,7 +47,9 @@ def scan_drive_folder(folder_id):
     results = service.files().list(
         q=f"'{folder_id}' in parents and trashed=false",
         fields="files(id, name, mimeType)",
-        pageSize=1000
+        pageSize=1000,
+        supportsAllDrives=True,
+        includeItemsFromAllDrives=True,
     ).execute()
 
     files = results.get("files", [])
@@ -99,7 +101,7 @@ def scan_drive_folder(folder_id):
 # ── Drive 파일 다운로드 ───────────────────────────────────────
 def download_from_drive(file_id, filename, tmp_dir):
     service = get_drive_service()
-    request = service.files().get_media(fileId=file_id)
+    request = service.files().get_media(fileId=file_id, supportsAllDrives=True)
     fpath = os.path.join(tmp_dir, filename)
     with open(fpath, "wb") as f:
         downloader = MediaIoBaseDownload(f, request)
@@ -111,7 +113,7 @@ def download_from_drive(file_id, filename, tmp_dir):
 # ── Drive 파일 삭제 ───────────────────────────────────────────
 def delete_from_drive(file_id, filename):
     service = get_drive_service()
-    service.files().delete(fileId=file_id).execute()
+    service.files().delete(fileId=file_id, supportsAllDrives=True).execute()
     print(f"  Drive 삭제: {filename}")
 
 # ── R2 업로드 ─────────────────────────────────────────────────
