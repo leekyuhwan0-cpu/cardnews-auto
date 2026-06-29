@@ -153,7 +153,10 @@ def create_single_media(ig_user_id, token, url, caption, is_video=False):
     else:
         data["image_url"] = url
     res = requests.post(f"https://graph.instagram.com/v21.0/{ig_user_id}/media", data=data)
-    return res.json().get("id")
+    j = res.json()
+    if "id" not in j:
+        print(f"  [API 오류] {j}")
+    return j.get("id")
 
 def create_carousel_item(ig_user_id, token, url, is_video=False):
     data = {"access_token": token, "is_carousel_item": "true"}
