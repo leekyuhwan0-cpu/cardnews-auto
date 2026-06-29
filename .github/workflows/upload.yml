@@ -2,11 +2,11 @@ name: CardNews Auto Upload
 
 on:
   schedule:
-    - cron: '0 8 * * *'    # 17:00 KST
-    - cron: '3 8 * * *'    # 17:03 KST
-    - cron: '6 8 * * *'    # 17:06 KST
-    - cron: '9 8 * * *'    # 17:09 KST
-    - cron: '12 8 * * *'   # 17:12 KST
+    - cron: '0 6 * * *'    # 15:00 KST
+    - cron: '3 6 * * *'    # 15:03 KST
+    - cron: '6 6 * * *'    # 15:06 KST
+    - cron: '9 6 * * *'    # 15:09 KST
+    - cron: '12 6 * * *'   # 15:12 KST
   workflow_dispatch:        # 수동 실행 버튼
 
 jobs:
