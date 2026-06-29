@@ -5,8 +5,6 @@ on:
     - cron: '0 7 * * *'    # 16:00 KST
     - cron: '2 7 * * *'    # 16:02 KST
     - cron: '4 7 * * *'    # 16:04 KST
-    - cron: '6 7 * * *'    # 16:06 KST
-    - cron: '8 7 * * *'    # 16:08 KST
   workflow_dispatch:        # 수동 실행 버튼
 
 jobs:
