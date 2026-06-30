@@ -190,6 +190,25 @@ def publish_media(ig_user_id, token, container_id):
     )
     return res.json()
 
+def post_story(ig_user_id, token, url, is_video=False):
+    data = {"access_token": token, "media_type": "STORIES"}
+    if is_video:
+        data["video_url"] = url
+    else:
+        data["image_url"] = url
+    res = requests.post(f"https://graph.instagram.com/v21.0/{ig_user_id}/media", data=data)
+    j = res.json()
+    story_id = j.get("id")
+    if not story_id:
+        print(f"  [스토리 오류] {j}")
+        return
+    time.sleep(3)
+    res2 = requests.post(
+        f"https://graph.instagram.com/v21.0/{ig_user_id}/media_publish",
+        data={"creation_id": story_id, "access_token": token}
+    )
+    print(f"  [스토리] 게시 결과: {res2.json()}")
+
 # ── 메인 업로드 함수 ──────────────────────────────────────────
 def post_group(lang, base, file_items):
     config = ACCOUNTS[lang]
@@ -201,6 +220,9 @@ def post_group(lang, base, file_items):
     txt_items   = [f for f in file_items if f["type"] == "txt"]
 
     print(f"\n[{lang}] {base}번 업로드 시작 (미디어 {len(media_items)}개)")
+
+    story_url = None
+    story_is_video = False
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # 캡션 읽기
@@ -216,6 +238,7 @@ def post_group(lang, base, file_items):
             fpath = download_from_drive(item["id"], item["name"], tmp_dir)
             url = upload_to_r2(fpath, item["name"])
             print(f"  URL: {url}")
+            story_url, story_is_video = url, is_video
             container_id = create_single_media(ig_user_id, token, url, caption, is_video)
             print(f"  컨테이너 ID: {container_id}")
 
@@ -227,6 +250,8 @@ def post_group(lang, base, file_items):
                 fpath = download_from_drive(item["id"], item["name"], tmp_dir)
                 url = upload_to_r2(fpath, item["name"])
                 print(f"  URL: {url}")
+                if story_url is None:
+                    story_url, story_is_video = url, is_video
                 if is_video:
                     time.sleep(5)
                 item_id = create_carousel_item(ig_user_id, token, url, is_video)
@@ -247,6 +272,11 @@ def post_group(lang, base, file_items):
         for item in file_items:
             delete_from_drive(item["id"], item["name"])
         print(f"  [{lang}] {base}번 업로드 완료!")
+        # 스토리 업로드
+        if story_url:
+            print(f"  [스토리] 업로드 시작...")
+            time.sleep(2)
+            post_story(ig_user_id, token, story_url, story_is_video)
         return True
     else:
         print(f"  [오류] 게시 실패: {result}")
