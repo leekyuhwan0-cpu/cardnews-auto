@@ -12,6 +12,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 import io
+from PIL import Image, ImageFilter
 
 from cardnews_config import (
     ACCOUNTS, R2_BUCKET, R2_PUBLIC_URL, R2_ENDPOINT, R2_ACCESS_KEY, R2_SECRET_KEY,
@@ -190,6 +191,30 @@ def publish_media(ig_user_id, token, container_id):
     )
     return res.json()
 
+def make_story_image(img_path, tmp_dir):
+    """
+    4:5 피드 이미지 → 9:16 스토리 포맷 (인스타 '피드 스토리 공유' 스타일)
+    배경: 원본 블러 + 어둡게, 중앙에 원본 카드 배치
+    """
+    card = Image.open(img_path).convert("RGB")
+    card = card.resize((1080, 1350), Image.LANCZOS)
+
+    # 배경: 카드를 1080x1920으로 늘린 후 블러
+    bg = card.resize((1080, 1920), Image.LANCZOS)
+    bg = bg.filter(ImageFilter.GaussianBlur(radius=30))
+    # 약간 어둡게
+    dark = Image.new("RGB", (1080, 1920), (0, 0, 0))
+    bg = Image.blend(bg, dark, alpha=0.35)
+
+    # 카드 중앙 배치 (상하 285px 여백)
+    top = (1920 - 1350) // 2
+    bg.paste(card, (0, top))
+
+    out_path = os.path.join(tmp_dir, "story_" + os.path.basename(img_path))
+    bg.save(out_path, format="PNG")
+    return out_path
+
+
 def post_story(ig_user_id, token, url, is_video=False):
     data = {"access_token": token, "media_type": "STORIES"}
     if is_video:
@@ -238,7 +263,11 @@ def post_group(lang, base, file_items):
             fpath = download_from_drive(item["id"], item["name"], tmp_dir)
             url = upload_to_r2(fpath, item["name"])
             print(f"  URL: {url}")
-            story_url, story_is_video = url, is_video
+            if not is_video:
+                story_fpath = make_story_image(fpath, tmp_dir)
+                story_url = upload_to_r2(story_fpath, "story_" + item["name"])
+            else:
+                story_url, story_is_video = url, is_video
             container_id = create_single_media(ig_user_id, token, url, caption, is_video)
             print(f"  컨테이너 ID: {container_id}")
 
@@ -251,7 +280,11 @@ def post_group(lang, base, file_items):
                 url = upload_to_r2(fpath, item["name"])
                 print(f"  URL: {url}")
                 if story_url is None:
-                    story_url, story_is_video = url, is_video
+                    if not is_video:
+                        story_fpath = make_story_image(fpath, tmp_dir)
+                        story_url = upload_to_r2(story_fpath, "story_" + item["name"])
+                    else:
+                        story_url, story_is_video = url, is_video
                 if is_video:
                     time.sleep(5)
                 item_id = create_carousel_item(ig_user_id, token, url, is_video)
