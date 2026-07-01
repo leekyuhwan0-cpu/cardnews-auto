@@ -215,6 +215,34 @@ def make_story_image(img_path, tmp_dir):
     return out_path
 
 
+# ── Facebook 게시 ─────────────────────────────────────────────
+def post_facebook_feed(page_id, page_token, url, caption):
+    data = {
+        "access_token": page_token,
+        "url": url,
+        "caption": caption,
+    }
+    res = requests.post(f"https://graph.facebook.com/v21.0/{page_id}/photos", data=data)
+    j = res.json()
+    if j.get("id"):
+        print(f"  [FB 피드] 게시 완료: {j['id']}")
+    else:
+        print(f"  [FB 피드 오류] {j}")
+
+def post_facebook_story(page_id, page_token, url):
+    # 1단계: 스토리 이미지 업로드
+    data = {
+        "access_token": page_token,
+        "url": url,
+    }
+    res = requests.post(f"https://graph.facebook.com/v21.0/{page_id}/photo_stories", data=data)
+    j = res.json()
+    if j.get("id"):
+        print(f"  [FB 스토리] 게시 완료: {j['id']}")
+    else:
+        print(f"  [FB 스토리 오류] {j}")
+
+
 def post_story(ig_user_id, token, url, is_video=False):
     data = {"access_token": token, "media_type": "STORIES"}
     if is_video:
@@ -305,11 +333,24 @@ def post_group(lang, base, file_items):
         for item in file_items:
             delete_from_drive(item["id"], item["name"])
         print(f"  [{lang}] {base}번 업로드 완료!")
-        # 스토리 업로드
+
+        # 인스타 스토리 업로드
         if story_url:
             print(f"  [스토리] 업로드 시작...")
             time.sleep(2)
             post_story(ig_user_id, token, story_url, story_is_video)
+
+        # Facebook 피드 + 스토리 업로드
+        fb_page_id    = config.get("fb_page_id")
+        fb_page_token = config.get("fb_page_token")
+        if fb_page_id and fb_page_token and story_url and not story_is_video:
+            print(f"  [Facebook] 피드 업로드 시작...")
+            time.sleep(2)
+            post_facebook_feed(fb_page_id, fb_page_token, story_url, caption)
+            print(f"  [Facebook] 스토리 업로드 시작...")
+            time.sleep(2)
+            post_facebook_story(fb_page_id, fb_page_token, story_url)
+
         return True
     else:
         print(f"  [오류] 게시 실패: {result}")
