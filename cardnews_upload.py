@@ -4,7 +4,7 @@ import sys
 import time
 import random
 import tempfile
-from urllib.parse import quote
+import uuid
 import requests
 import boto3
 from pathlib import Path
@@ -120,7 +120,7 @@ def delete_from_drive(file_id, filename):
 
 # ── R2 업로드 ─────────────────────────────────────────────────
 def upload_to_r2(file_path, filename):
-    key = f"temp/{filename}"
+    key = f"temp/{uuid.uuid4().hex}{Path(filename).suffix}"
     ext = filename.rsplit(".", 1)[-1].lower()
     content_type_map = {"mp4": "video/mp4", "webp": "image/webp", "jpg": "image/jpeg", "jpeg": "image/jpeg"}
     content_type = content_type_map.get(ext, "image/png")
