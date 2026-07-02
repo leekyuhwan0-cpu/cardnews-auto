@@ -61,16 +61,16 @@ def scan_drive_folder(folder_id):
         name = f["name"]
         file_id = f["id"]
 
-        # 584영상.mp4 or 584영상.png
-        m = re.match(r'^(\d+)영상\.(mp4|png)$', name)
+        # 584영상.mp4
+        m = re.match(r'^(\d+)영상\.mp4$', name)
         if m:
             base = int(m.group(1))
             groups.setdefault(base, [])
             groups[base].append({"id": file_id, "name": name, "type": "video"})
             continue
 
-        # 584-1.png, 584-2.png
-        m = re.match(r'^(\d+)-(\d+)\.png$', name)
+        # 584-1.png/webp/jpg/jpeg, 584-2.png/webp/jpg/jpeg
+        m = re.match(r'^(\d+)-(\d+)\.(png|webp|jpg|jpeg)$', name)
         if m:
             base = int(m.group(1))
             idx = int(m.group(2))
@@ -78,8 +78,8 @@ def scan_drive_folder(folder_id):
             groups[base].append({"id": file_id, "name": name, "type": f"img_{idx}"})
             continue
 
-        # 584.png
-        m = re.match(r'^(\d+)\.png$', name)
+        # 584.png/webp/jpg/jpeg
+        m = re.match(r'^(\d+)\.(png|webp|jpg|jpeg)$', name)
         if m:
             base = int(m.group(1))
             groups.setdefault(base, [])
@@ -94,8 +94,8 @@ def scan_drive_folder(folder_id):
             groups[base].append({"id": file_id, "name": name, "type": "txt"})
             continue
 
-        # 1_운석.png
-        m = re.match(r'^(\d+)_[^.]+\.png$', name)
+        # 1_운석.png/webp/jpg/jpeg
+        m = re.match(r'^(\d+)_[^.]+\.(png|webp|jpg|jpeg)$', name)
         if m:
             base = int(m.group(1))
             groups.setdefault(base, [])
@@ -137,7 +137,9 @@ def delete_from_drive(file_id, filename):
 # ── R2 업로드 ─────────────────────────────────────────────────
 def upload_to_r2(file_path, filename):
     key = f"temp/{filename}"
-    content_type = "video/mp4" if filename.endswith(".mp4") else "image/png"
+    ext = filename.rsplit(".", 1)[-1].lower()
+    content_type_map = {"mp4": "video/mp4", "webp": "image/webp", "jpg": "image/jpeg", "jpeg": "image/jpeg"}
+    content_type = content_type_map.get(ext, "image/png")
     s3.upload_file(
         file_path,
         R2_BUCKET,
