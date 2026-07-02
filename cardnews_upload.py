@@ -61,51 +61,35 @@ def scan_drive_folder(folder_id):
         name = f["name"]
         file_id = f["id"]
 
-        # 584영상.mp4
-        m = re.match(r'^(\d+)영상\.mp4$', name)
+        # 소파영상.mp4 / 584영상.mp4
+        m = re.match(r'^([^.\-\s]+)영상\.mp4$', name)
         if m:
-            base = int(m.group(1))
+            base = m.group(1)
             groups.setdefault(base, [])
             groups[base].append({"id": file_id, "name": name, "type": "video"})
             continue
 
-        # 584-1.png/webp/jpg/jpeg, 584-2.png/webp/jpg/jpeg
-        m = re.match(r'^(\d+)-(\d+)\.(png|webp|jpg|jpeg)$', name)
+        # 소파-1.png/webp/jpg/jpeg / 584-1.png
+        m = re.match(r'^([^.\-\s]+)-(\d+)\.(png|webp|jpg|jpeg)$', name)
         if m:
-            base = int(m.group(1))
+            base = m.group(1)
             idx = int(m.group(2))
             groups.setdefault(base, [])
             groups[base].append({"id": file_id, "name": name, "type": f"img_{idx}"})
             continue
 
-        # 584.png/webp/jpg/jpeg
-        m = re.match(r'^(\d+)\.(png|webp|jpg|jpeg)$', name)
+        # 소파.png/webp/jpg/jpeg / 584.png
+        m = re.match(r'^([^.\-\s]+)\.(png|webp|jpg|jpeg)$', name)
         if m:
-            base = int(m.group(1))
+            base = m.group(1)
             groups.setdefault(base, [])
             groups[base].append({"id": file_id, "name": name, "type": "img_0"})
             continue
 
-        # 584.txt
-        m = re.match(r'^(\d+)\.txt$', name)
+        # 소파.txt / 584.txt
+        m = re.match(r'^([^.\-\s]+)\.txt$', name)
         if m:
-            base = int(m.group(1))
-            groups.setdefault(base, [])
-            groups[base].append({"id": file_id, "name": name, "type": "txt"})
-            continue
-
-        # 1_운석.png/webp/jpg/jpeg
-        m = re.match(r'^(\d+)_[^.]+\.(png|webp|jpg|jpeg)$', name)
-        if m:
-            base = int(m.group(1))
-            groups.setdefault(base, [])
-            groups[base].append({"id": file_id, "name": name, "type": "img_0"})
-            continue
-
-        # 1_운석.txt
-        m = re.match(r'^(\d+)_[^.]+\.txt$', name)
-        if m:
-            base = int(m.group(1))
+            base = m.group(1)
             groups.setdefault(base, [])
             groups[base].append({"id": file_id, "name": name, "type": "txt"})
             continue
