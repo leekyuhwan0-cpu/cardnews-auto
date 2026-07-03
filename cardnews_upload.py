@@ -62,12 +62,21 @@ def scan_drive_folder(folder_id):
         name = f["name"]
         file_id = f["id"]
 
-        # 소파영상.mp4 / 584영상.mp4
-        m = re.match(r'^([^.\-\s]+)영상\.mp4$', name)
+        # 584_영상1.mp4 / 584_영상2.mp4 (다중 영상)
+        m = re.match(r'^([^.\-\s]+?)_영상(\d+)\.mp4$', name)
+        if m:
+            base = m.group(1)
+            idx = int(m.group(2))
+            groups.setdefault(base, [])
+            groups[base].append({"id": file_id, "name": name, "type": f"video_{idx}"})
+            continue
+
+        # 584_영상.mp4 / 584영상.mp4 (단일 영상)
+        m = re.match(r'^([^.\-\s]+?)_?영상\.mp4$', name)
         if m:
             base = m.group(1)
             groups.setdefault(base, [])
-            groups[base].append({"id": file_id, "name": name, "type": "video"})
+            groups[base].append({"id": file_id, "name": name, "type": "video_1"})
             continue
 
         # 소파-1.png/webp/jpg/jpeg / 584-1.png
@@ -95,9 +104,9 @@ def scan_drive_folder(folder_id):
             groups[base].append({"id": file_id, "name": name, "type": "txt"})
             continue
 
-    # 정렬: img_0 → img_1 → img_2 → video (txt 제외)
+    # 정렬: img_0 → img_1 → img_2 → video_1 → video_2 (txt 제외)
     for base in groups:
-        groups[base].sort(key=lambda x: (0 if x["type"].startswith("img") else (1 if x["type"] == "video" else 2), x["type"]))
+        groups[base].sort(key=lambda x: (0 if x["type"].startswith("img") else (1 if x["type"].startswith("video") else 2), x["type"]))
 
     return groups
 
@@ -274,7 +283,7 @@ def post_group(lang, base, file_items):
         # 단일 파일
         if len(media_items) == 1:
             item = media_items[0]
-            is_video = (item["type"] == "video")
+            is_video = item["type"].startswith("video")
             fpath = download_from_drive(item["id"], item["name"], tmp_dir)
             url = upload_to_r2(fpath, item["name"])
             print(f"  URL: {url}")
@@ -290,7 +299,7 @@ def post_group(lang, base, file_items):
         else:
             children_ids = []
             for item in media_items:
-                is_video = (item["type"] == "video")
+                is_video = item["type"].startswith("video")
                 fpath = download_from_drive(item["id"], item["name"], tmp_dir)
                 url = upload_to_r2(fpath, item["name"])
                 print(f"  URL: {url}")
