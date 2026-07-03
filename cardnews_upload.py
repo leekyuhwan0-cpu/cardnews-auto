@@ -131,7 +131,7 @@ def upload_to_r2(file_path, filename):
         key,
         ExtraArgs={"ContentType": content_type}
     )
-    return f"{R2_PUBLIC_URL}/temp/{quote(filename)}"
+    return f"{R2_PUBLIC_URL}/{key}"
 
 # ── Instagram API ─────────────────────────────────────────────
 def create_single_media(ig_user_id, token, url, caption, is_video=False):
