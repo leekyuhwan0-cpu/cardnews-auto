@@ -187,6 +187,28 @@ def publish_media(ig_user_id, token, container_id):
     )
     return res.json()
 
+def wait_for_video_processing(media_id, token, timeout=180, interval=5):
+    """영상 미디어 컨테이너가 처리 완료(FINISHED)될 때까지 대기.
+    캐러셀 컨테이너/게시에 영상을 참조하려면 트랜스코딩이 끝나야 함."""
+    if not media_id:
+        return False
+    elapsed = 0
+    while elapsed < timeout:
+        res = requests.get(
+            f"https://graph.instagram.com/v21.0/{media_id}",
+            params={"fields": "status_code", "access_token": token}
+        )
+        status = res.json().get("status_code")
+        print(f"  영상 처리 상태: {status}")
+        if status == "FINISHED":
+            return True
+        if status == "ERROR":
+            return False
+        time.sleep(interval)
+        elapsed += interval
+    print(f"  [경고] 영상 처리 대기 시간 초과 ({timeout}초)")
+    return False
+
 def make_story_image(img_path, tmp_dir):
     """
     4:5 피드 이미지 → 9:16 스토리 포맷 (인스타 '피드 스토리 공유' 스타일)
@@ -294,6 +316,9 @@ def post_group(lang, base, file_items):
                 story_url, story_is_video = url, is_video
             container_id = create_single_media(ig_user_id, token, url, caption, is_video)
             print(f"  컨테이너 ID: {container_id}")
+            if is_video and not wait_for_video_processing(container_id, token):
+                print(f"  [오류] 영상 처리 실패/시간초과")
+                return False
 
         # 캐러셀
         else:
@@ -309,9 +334,10 @@ def post_group(lang, base, file_items):
                         story_url = upload_to_r2(story_fpath, "story_" + item["name"])
                     else:
                         story_url, story_is_video = url, is_video
-                if is_video:
-                    time.sleep(5)
                 item_id = create_carousel_item(ig_user_id, token, url, is_video)
+                if is_video and not wait_for_video_processing(item_id, token):
+                    print(f"  [오류] 영상 처리 실패/시간초과")
+                    return False
                 children_ids.append(item_id)
                 time.sleep(2)
             container_id = create_carousel_container(ig_user_id, token, children_ids, caption)
