@@ -302,6 +302,7 @@ def post_group(lang, base, file_items):
     # txt 파일 분리
     media_items = [f for f in file_items if f["type"] != "txt"]
     txt_items   = [f for f in file_items if f["type"] == "txt"]
+    has_video   = any(item["type"].startswith("video") for item in media_items)
 
     print(f"\n[{lang}] {base}번 업로드 시작 (미디어 {len(media_items)}개)")
 
@@ -362,7 +363,9 @@ def post_group(lang, base, file_items):
     # 자식(영상) 상태는 FINISHED를 확인했지만, 부모 캐러셀 컨테이너 자체도
     # 서버에 완전히 반영(FINISHED)됐는지 publish 전에 확인한다.
     # (자식 처리 완료 → 부모 컨테이너 준비 사이에도 지연이 있을 수 있음)
-    if not wait_for_video_processing(container_id, token, timeout=60, interval=3):
+    # 이미지만 있는 경우 status_code 필드 자체가 없어 무조건 타임아웃까지
+    # 대기하게 되므로, 영상이 하나라도 포함된 경우에만 체크한다.
+    if has_video and not wait_for_video_processing(container_id, token, timeout=60, interval=3):
         print(f"  [경고] 캐러셀 컨테이너 상태 확인 실패/시간초과, 그래도 게시 시도")
 
     time.sleep(3)
