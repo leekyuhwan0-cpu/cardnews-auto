@@ -398,9 +398,17 @@ def post_group(lang, base, file_items):
         return False
 
 # ── 단건 업로드 (스케줄러 호출용) ────────────────────────────
-def post_one(lang):
+def post_one(lang, target=None):
     folder_id = ACCOUNTS[lang]["drive_folder_id"]
     groups = scan_drive_folder(folder_id)
+
+    # target이 지정되면 랜덤 대신 해당 번호만 업로드 (수동 재시도/테스트용)
+    if target:
+        if target not in groups:
+            print(f"[{lang}] target '{target}' 을(를) Drive에서 찾을 수 없음")
+            return
+        post_group(lang, target, groups[target])
+        return
 
     # txt만 있는 항목 제외, 미디어 없는 항목 제외
     available = [b for b, items in groups.items() if any(f["type"] != "txt" for f in items)]
@@ -414,4 +422,5 @@ def post_one(lang):
 
 if __name__ == "__main__":
     lang = sys.argv[1] if len(sys.argv) > 1 else "tr"
-    post_one(lang)
+    target = sys.argv[2] if len(sys.argv) > 2 else None
+    post_one(lang, target)
