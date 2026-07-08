@@ -6,10 +6,20 @@ on:
     - cron: '2 5 * * *'    # 14:02 KST
     - cron: '4 5 * * *'    # 14:04 KST
   workflow_dispatch:        # 수동 실행 버튼
+    inputs:
+      target:
+        description: '지정 업로드할 번호 (비우면 랜덤)'
+        required: false
+        default: ''
+
+concurrency:
+  group: ja-upload
+  cancel-in-progress: false
 
 jobs:
   upload:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,4 +38,4 @@ jobs:
         run: echo "$CONFIG_B64" | tr -d '[:space:]' | base64 -d > cardnews_config.py
 
       - name: 업로드 실행
-        run: python cardnews_upload.py ja
+        run: python cardnews_upload.py ja "${{ github.event.inputs.target }}"
