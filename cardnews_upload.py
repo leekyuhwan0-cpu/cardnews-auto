@@ -180,14 +180,27 @@ def create_carousel_container(ig_user_id, token, children_ids, caption):
     print(f"  캐러셀 컨테이너: {result}")
     return result.get("id")
 
-def publish_media(ig_user_id, token, container_id):
-    res = requests.post(
-        f"https://graph.instagram.com/v21.0/{ig_user_id}/media_publish",
-        data={"creation_id": container_id, "access_token": token}
-    )
-    return res.json()
+def publish_media(ig_user_id, token, container_id, retries=4, retry_wait=10):
+    """게시 시도. 영상 트랜스코딩이 FINISHED로 떠도 서버 반영이 지연되어
+    'Media ID is not available' (code 9007, subcode 2207027)가 뜰 수 있어
+    잠시 대기 후 재시도한다."""
+    for attempt in range(retries):
+        res = requests.post(
+            f"https://graph.instagram.com/v21.0/{ig_user_id}/media_publish",
+            data={"creation_id": container_id, "access_token": token}
+        )
+        result = res.json()
+        if result.get("id"):
+            return result
+        err = result.get("error", {})
+        if err.get("code") == 9007 and attempt < retries - 1:
+            print(f"  [재시도 {attempt + 1}/{retries - 1}] 미디어 준비 안됨, {retry_wait}초 후 재시도")
+            time.sleep(retry_wait)
+            continue
+        return result
+    return result
 
-def wait_for_video_processing(media_id, token, timeout=180, interval=5):
+def wait_for_video_processing(media_id, token, timeout=300, interval=5):
     """영상 미디어 컨테이너가 처리 완료(FINISHED)될 때까지 대기.
     캐러셀 컨테이너/게시에 영상을 참조하려면 트랜스코딩이 끝나야 함."""
     if not media_id:
@@ -345,6 +358,12 @@ def post_group(lang, base, file_items):
     if not container_id:
         print(f"  [오류] 컨테이너 생성 실패")
         return False
+
+    # 자식(영상) 상태는 FINISHED를 확인했지만, 부모 캐러셀 컨테이너 자체도
+    # 서버에 완전히 반영(FINISHED)됐는지 publish 전에 확인한다.
+    # (자식 처리 완료 → 부모 컨테이너 준비 사이에도 지연이 있을 수 있음)
+    if not wait_for_video_processing(container_id, token, timeout=60, interval=3):
+        print(f"  [경고] 캐러셀 컨테이너 상태 확인 실패/시간초과, 그래도 게시 시도")
 
     time.sleep(3)
     result = publish_media(ig_user_id, token, container_id)

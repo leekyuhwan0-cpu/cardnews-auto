@@ -9,9 +9,14 @@ on:
     - cron: '12 6 * * *'   # 15:12 KST
   workflow_dispatch:        # 수동 실행 버튼
 
+concurrency:
+  group: tr-upload
+  cancel-in-progress: false
+
 jobs:
   upload:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
