@@ -47,6 +47,8 @@ jobs:
             for i in $(seq 1 "$REPEAT_COUNT"); do
               echo "=== ${i}/${REPEAT_COUNT}번째 업로드 ==="
               python cardnews_upload.py kr ""
-              [ "$i" -lt "$REPEAT_COUNT" ] && sleep "$INTERVAL_SEC"
+              if [ "$i" -lt "$REPEAT_COUNT" ]; then
+                sleep "$INTERVAL_SEC"
+              fi
             done
           fi

@@ -260,20 +260,6 @@ def post_facebook_feed(page_id, page_token, url, caption):
     else:
         print(f"  [FB 피드 오류] {j}")
 
-def post_facebook_story(page_id, page_token, url):
-    # 1단계: 스토리 이미지 업로드
-    data = {
-        "access_token": page_token,
-        "url": url,
-    }
-    res = requests.post(f"https://graph.facebook.com/v21.0/{page_id}/photo_stories", data=data)
-    j = res.json()
-    if j.get("id"):
-        print(f"  [FB 스토리] 게시 완료: {j['id']}")
-    else:
-        print(f"  [FB 스토리 오류] {j}")
-
-
 def post_story(ig_user_id, token, url, is_video=False):
     data = {"access_token": token, "media_type": "STORIES"}
     if is_video:
@@ -391,9 +377,6 @@ def post_group(lang, base, file_items):
             print(f"  [Facebook] 피드 업로드 시작...")
             time.sleep(2)
             post_facebook_feed(fb_page_id, fb_page_token, story_url, caption)
-            print(f"  [Facebook] 스토리 업로드 시작...")
-            time.sleep(2)
-            post_facebook_story(fb_page_id, fb_page_token, story_url)
 
         return True
     else:
