@@ -47,15 +47,22 @@ def scan_drive_folder(folder_id):
     반환: { 584: [{"id":..., "name":"584.png", "type":"img_0"}, ...], ... }
     """
     service = get_drive_service()
-    results = service.files().list(
-        q=f"'{folder_id}' in parents and trashed=false",
-        fields="files(id, name, mimeType)",
-        pageSize=1000,
-        supportsAllDrives=True,
-        includeItemsFromAllDrives=True,
-    ).execute()
+    files = []
+    page_token = None
+    while True:
+        results = service.files().list(
+            q=f"'{folder_id}' in parents and trashed=false",
+            fields="nextPageToken, files(id, name, mimeType)",
+            pageSize=1000,
+            pageToken=page_token,
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True,
+        ).execute()
+        files.extend(results.get("files", []))
+        page_token = results.get("nextPageToken")
+        if not page_token:
+            break
 
-    files = results.get("files", [])
     groups = {}
 
     for f in files:
