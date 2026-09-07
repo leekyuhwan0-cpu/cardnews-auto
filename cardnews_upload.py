@@ -133,7 +133,7 @@ def download_from_drive(file_id, filename, tmp_dir):
 def delete_from_drive(file_id, filename):
     service = get_drive_service()
     service.files().delete(fileId=file_id, supportsAllDrives=True).execute()
-    print(f"  Drive 삭제: {filename}")
+    print("  Drive 삭제 완료")
 
 # ── R2 업로드 ─────────────────────────────────────────────────
 def upload_to_r2(file_path, filename):
@@ -297,7 +297,7 @@ def post_group(lang, base, file_items):
     txt_items   = [f for f in file_items if f["type"] == "txt"]
     has_video   = any(item["type"].startswith("video") for item in media_items)
 
-    print(f"\n[{lang}] {base}번 업로드 시작 (미디어 {len(media_items)}개)")
+    print(f"\n[{lang}] 업로드 시작 (미디어 {len(media_items)}개)")
 
     story_url = None
     story_is_video = False
@@ -369,7 +369,7 @@ def post_group(lang, base, file_items):
         # 업로드 성공 → Drive에서 파일 전부 삭제
         for item in file_items:
             delete_from_drive(item["id"], item["name"])
-        print(f"  [{lang}] {base}번 업로드 완료!")
+        print(f"  [{lang}] 업로드 완료!")
 
         # 인스타 스토리 업로드
         if story_url:
@@ -399,21 +399,21 @@ def post_one(lang, target=None):
     if target:
         if target not in groups:
             print(f"[{lang}] target '{target}' 을(를) Drive에서 찾을 수 없음")
-            return
-        post_group(lang, target, groups[target])
-        return
+            return False
+        return post_group(lang, target, groups[target])
 
     # txt만 있는 항목 제외, 미디어 없는 항목 제외
     available = [b for b, items in groups.items() if any(f["type"] != "txt" for f in items)]
 
     if not available:
         print(f"[{lang}] 업로드 가능한 파일 없음")
-        return
+        return False
 
     base = random.choice(available)
-    post_group(lang, base, groups[base])
+    return post_group(lang, base, groups[base])
 
 if __name__ == "__main__":
     lang = sys.argv[1] if len(sys.argv) > 1 else "tr"
     target = sys.argv[2] if len(sys.argv) > 2 else None
-    post_one(lang, target)
+    ok = post_one(lang, target)
+    sys.exit(0 if ok else 1)
