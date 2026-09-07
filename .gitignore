@@ -1,0 +1,4 @@
+cardnews_config.py
+__pycache__/
+*.pyc
+tr_run_log.txt
