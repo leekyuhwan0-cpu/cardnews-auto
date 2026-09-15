@@ -70,7 +70,7 @@ def scan_drive_folder(folder_id):
         file_id = f["id"]
 
         # 584_영상1.mp4 / 584_영상2.mp4 (다중 영상)
-        m = re.match(r'^([^.\-\s]+?)_영상(\d+)\.mp4$', name)
+        m = re.match(r'^([^\-\s]+?)_영상(\d+)\.mp4$', name)
         if m:
             base = m.group(1)
             idx = int(m.group(2))
@@ -79,7 +79,7 @@ def scan_drive_folder(folder_id):
             continue
 
         # 584_영상.mp4 / 584영상.mp4 (단일 영상)
-        m = re.match(r'^([^.\-\s]+?)_?영상\.mp4$', name)
+        m = re.match(r'^([^\-\s]+?)_?영상\.mp4$', name)
         if m:
             base = m.group(1)
             groups.setdefault(base, [])
@@ -87,7 +87,7 @@ def scan_drive_folder(folder_id):
             continue
 
         # 소파-1.png/webp/jpg/jpeg / 584-1.png
-        m = re.match(r'^([^.\-\s]+)-(\d+)\.(png|webp|jpg|jpeg)$', name)
+        m = re.match(r'^([^\-\s]+)-(\d+)\.(png|webp|jpg|jpeg)$', name)
         if m:
             base = m.group(1)
             idx = int(m.group(2))
@@ -96,7 +96,7 @@ def scan_drive_folder(folder_id):
             continue
 
         # 소파.png/webp/jpg/jpeg / 584.png
-        m = re.match(r'^([^.\-\s]+)\.(png|webp|jpg|jpeg)$', name)
+        m = re.match(r'^([^\-\s]+)\.(png|webp|jpg|jpeg)$', name)
         if m:
             base = m.group(1)
             groups.setdefault(base, [])
@@ -104,7 +104,7 @@ def scan_drive_folder(folder_id):
             continue
 
         # 소파.txt / 584.txt
-        m = re.match(r'^([^.\-\s]+)\.txt$', name)
+        m = re.match(r'^([^\-\s]+)\.txt$', name)
         if m:
             base = m.group(1)
             groups.setdefault(base, [])
