@@ -289,6 +289,12 @@ def post_story(ig_user_id, token, url, is_video=False):
 # ── 메인 업로드 함수 ──────────────────────────────────────────
 def post_group(lang, base, file_items):
     config = ACCOUNTS[lang]
+    # FB 페이지 값은 config에 없으면 별도 Secret(env)에서 채움 (예: TR_FB_PAGE_ID / TR_FB_PAGE_TOKEN)
+    _p = lang.upper()
+    if not config.get("fb_page_id") and os.environ.get(f"{_p}_FB_PAGE_ID"):
+        config["fb_page_id"] = os.environ[f"{_p}_FB_PAGE_ID"]
+    if not config.get("fb_page_token") and os.environ.get(f"{_p}_FB_PAGE_TOKEN"):
+        config["fb_page_token"] = os.environ[f"{_p}_FB_PAGE_TOKEN"]
     ig_user_id = config["ig_user_id"]
     token = config["access_token"]
 

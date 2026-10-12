@@ -62,3 +62,5 @@ jobs:
           fi
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          TR_FB_PAGE_ID: ${{ secrets.TR_FB_PAGE_ID }}
+          TR_FB_PAGE_TOKEN: ${{ secrets.TR_FB_PAGE_TOKEN }}
